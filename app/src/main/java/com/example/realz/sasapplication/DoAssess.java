@@ -1,16 +1,20 @@
 package com.example.realz.sasapplication;
 
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
+import android.widget.SimpleAdapter;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import org.json.JSONArray;
@@ -27,6 +31,9 @@ import java.net.URLConnection;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
@@ -35,6 +42,7 @@ import javax.net.ssl.SSLSession;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
+import static com.example.realz.sasapplication.R.id.quest_id;
 import static com.example.realz.sasapplication.R.id.radio1;
 
 public class DoAssess extends AppCompatActivity {
@@ -43,6 +51,9 @@ public class DoAssess extends AppCompatActivity {
     private ProgressDialog progressDialog;
     private Button ButtonSub;
     private RadioGroup GroupRadio1;
+    private int numques=0;
+    private int numchoice=0;
+    private SimpleAdapter adapter;
 
 
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,9 +62,12 @@ public class DoAssess extends AppCompatActivity {
         ListViewJSon = (ListView)findViewById(R.id.listvieww);
         ButtonSub = (Button)findViewById(R.id.ButtonSubmit);
 
-
         final ArrayList<String> exData = new ArrayList<String>();
         exData.clear();
+
+        final ArrayList<String> exData2 = new ArrayList<String>();
+        exData2.clear();
+
         final ArrayAdapter<String> myAdapter = new ArrayAdapter<String>(DoAssess.this,R.layout.list_question,R.id.listview_text,exData);
         ListViewJSon.setAdapter(myAdapter);
         new AsyncTask<Void, Void, Void>() {
@@ -111,7 +125,7 @@ public class DoAssess extends AppCompatActivity {
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
-
+                    numques=exArray.length();
                     for(int i = 0; i < exArray.length(); i++){
                         JSONObject jsonObj = null;
                         try {
@@ -121,6 +135,7 @@ public class DoAssess extends AppCompatActivity {
                         }
                         try {
                             exData.add(jsonObj.getString("quest_detail"));
+                            exData2.add(jsonObj.getString("quest_id"));
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
@@ -132,13 +147,27 @@ public class DoAssess extends AppCompatActivity {
                 return null;
             }
 
-
             @Override
             protected void onPostExecute(Void aVoid) {
                 super.onPostExecute(aVoid);
                 progressDialog.dismiss();
                 final ArrayAdapter<String> myAdapter = new ArrayAdapter<String>(DoAssess.this,R.layout.list_question,R.id.listview_text,exData);
+                //final ArrayAdapter<String> myAdapter = new ArrayAdapter<String>(DoAssess.this,R.layout.list_question,new String[] {R.id.listview_text,R.id.quest_id},new int[] {exData,exData2});
+//                List<Map<String, String>> list = new ArrayList<Map<String, String>>();
+//                Map<String, String> map;
+//                int count = exData.size();
+//                for(int i = 0; i < count; i++) {
+//                    map = new HashMap<String, String>();
+//                    map.put("name", exData.get(i));
+//                    map.put("total", exData2.get(i));
+//                    list.add(map);
+//                }
+//
+//                adapter = new SimpleAdapter(DoAssess.this, list, R.layout.list_question, new String[] { "name", "total" }, new int[] { R.id.listview_text, R.id.quest_id });
+
+
                 ListViewJSon.setAdapter(myAdapter);
+//                ListViewJSon.setAdapter(myAdapter2);
 
                 /*ListViewJSon.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                     @Override
@@ -161,6 +190,7 @@ public class DoAssess extends AppCompatActivity {
 
         //ArrayAdapter<String> myAdapter = new ArrayAdapter<String>(this,android.R.layout.simple_list_item_1,android.R.id.text1,exData);
         //ListViewJSon.setAdapter(myAdapter);
+
 
     }
 
@@ -206,28 +236,52 @@ public class DoAssess extends AppCompatActivity {
             e.printStackTrace();
         }
     }
+
     public void onRadioButtonClicked(View view) {
         // Is the button now checked?
+
+        //Context ss = ((TextView) context).findViewById(R.id.quest_id);
         boolean checked = ((RadioButton) view).isChecked();
 
         // Check which radio button was clicked
         switch(view.getId()) {
             case radio1:
-                if (checked)
-                    Toast.makeText(DoAssess.this, ((RadioButton) view).getText(), Toast.LENGTH_LONG).show();
+                if (checked) {
+
+                        numchoice++;
+
+                }
                 break;
             case R.id.radio2:
                 if (checked)
-                    Toast.makeText(DoAssess.this, ((RadioButton) view).getText(), Toast.LENGTH_LONG).show();
+                    numchoice++;
                 break;
             case R.id.radio3:
                 if (checked)
-                    Toast.makeText(DoAssess.this, ((RadioButton) view).getText(), Toast.LENGTH_LONG).show();
+                    numchoice++;
                 break;
             case R.id.radio4:
                 if (checked)
-                    Toast.makeText(DoAssess.this, ((RadioButton) view).getText(), Toast.LENGTH_LONG).show();
+                    numchoice++;
                 break;
         }
     }
+    public void checkQuiz(View v) {
+        ArrayList<String> incorrectAnswersList = new ArrayList<String>();
+        int numberOfQuestionsCorrect = 0;
+        StringBuilder sb = new StringBuilder();
+        for (String s : incorrectAnswersList)
+        {
+            sb.append(s);
+            sb.append("\n");
+        }
+        Context context = getApplicationContext();
+        CharSequence text = "You got " + numchoice + "/"+ numques+" answers check.\n\nRecheck the following:\n" + sb.toString();
+        int duration = Toast.LENGTH_SHORT;
+
+        Toast toast = Toast.makeText(context, text, duration);
+        toast.show();
+    }
+
+
 }
